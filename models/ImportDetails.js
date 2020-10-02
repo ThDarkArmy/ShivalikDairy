@@ -16,9 +16,9 @@ const importDetalsSchema = mongoose.Schema({
         default: (new Date()).toLocaleDateString("en-US")
     },
 
-    boughtFrom: {
+    user: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "Seller"
+        ref: "User"
     }
 })
 

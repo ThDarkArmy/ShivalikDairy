@@ -12,14 +12,14 @@ const exportDetailsSchema = mongoose.Schema({
     },
 
     date: {
-        type: String,
+        type: Date,
         default: (new Date()).toLocaleDateString("en-US")
     },
     
 
-    soldTo: {
+    user: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "Consumer"
+        ref: "User"
     }
 })
 

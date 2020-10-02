@@ -5,8 +5,8 @@ var transporter = nodemailer.createTransport({
     port: 465,
     secure: true,
     auth: {
-        user: process.env.email,
-        pass: process.env.password
+        user: process.env.EMAIL,
+        pass: process.env.PASSWORD
     }
 })
 
@@ -19,7 +19,7 @@ class SendMail{
 
     sendMail(){
         var mailOptions = {
-            from : "rajputanjali442@gmail.com",
+            from : process.env.EMAIL,
             to: this.to,
             subject: this.subject,
             html: this.text

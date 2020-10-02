@@ -1,27 +1,16 @@
 const express = require('express')
 const router = express.Router()
-const multer = require('multer')
 const createError = require('http-errors')
 const { verifyAccessToken } = require('../helpers/check-auth')
+const {calfSchema} = require('../helpers/validationSchema')
 
-// stoarge
-const storage = multer.diskStorage({
-    destination: function(req, file, cb){
-        cb(null, 'files/calves/')
-    },
-    filename: function(req, file, cb){
-        cb(null, file.originalname)
-    }
-})
-
-const upload = multer({storage: storage})
 
 const Calf = require('../models/Calf')
 
 // get all calves
-router.get('/', async (req, res, next)=>{
+router.get('/all',verifyAccessToken, async (req, res, next)=>{
     try{
-        const calves = await Calf.find({}).populate("childOf").select()
+        const calves = await Calf.find({}).populate("cow", "-__v").select("-__v")
         res.status(200).json({calves})
     }catch(error){
         next(error)
@@ -29,31 +18,43 @@ router.get('/', async (req, res, next)=>{
 })
 
 // get calf by id
-router.get('/:id',verifyAccessToken, async (req, res, next)=>{
+router.get('/byId/:id',verifyAccessToken, async (req, res, next)=>{
     try{
-        const calf = await Calf.findById(req.params.id).populate("childOf")
+        const calf = await Calf.findById(req.params.id).populate("cow", '-__v').select("-__v")
         res.status(200).json(calf)
     }catch(error){
         next(error)
     }
 })
 
+// get calf by cow
+router.get('/byCow/:id',verifyAccessToken, async (req, res, next)=>{
+    try{
+        const calves = await Calf.find({"cow": req.params.id}).populate("cowId", '-__v').select("-__v")
+        res.status(200).json({calves})
+    }catch(error){
+        next(error)
+    }
+})
+
+
 // add calf
-router.post('/add', verifyAccessToken, upload.single('profilePic'), async (req, res, next)=>{
+router.post('/add', verifyAccessToken, async (req, res, next)=>{
     
     try{
         if(req.payload.role!=="ADMIN") throw createError.Unauthorized("You are not authorized to add calf.")
-        if(!req.file) throw createError.BadRequest("Profile pic required!")
-        const {name, dob, gender, isHealthy, childOf} = req.body
+        //console.log(req.body)
+        const result = await calfSchema.validateAsync(req.body)
+        const {name, dob, gender, isHealthy, cowId} = result
         const newCalf = new Calf({
             name,
             dob,
             isHealthy,
             gender,
-            childOf
+            cow: cowId
         })
-        const savedCow = await newCalf.save()
-        res.status(201).json(savedCow)
+        const savedCalf = await newCalf.save()
+        res.status(201).json({msg: "Calf added successfully."})
 
     }catch(error){
         next(error)
@@ -65,7 +66,8 @@ router.put('/:id', verifyAccessToken, async (req, res, next)=>{
     
     try{
         if(req.payload.role!=="ADMIN") throw createError.Unauthorized("You are not authorized to update calf.")
-        const {name, age, pregnancy, isHealthy, isProductive, amountOfMilk} = req.body
+        const result = await calfSchema.validateAsync(req.body)
+        const {name, dob, gender, isHealthy, cowId} = result
        // console.log(req.body)
         
        
@@ -75,11 +77,10 @@ router.put('/:id', verifyAccessToken, async (req, res, next)=>{
         const newCalf = new Calf({
             _id: req.params.id,
             name,
-            age,
-            pregnancy,
-            isProductive,
             isHealthy,
-            amountOfMilk
+            dob,
+            gender,
+            cow: cowId
         })
         const response = await Calf.findByIdAndUpdate(req.params.id, {$set: newCalf}, {new: true})
         res.status(200).json({msg: "Calf updated successfully."})

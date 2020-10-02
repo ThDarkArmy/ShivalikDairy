@@ -16,7 +16,6 @@ require('dotenv').config()
 require('./config/database')
 
 
-
 const PORT = process.env.PORT || 3000
 // middlewares
 app.use(express.static(__dirname))
@@ -36,20 +35,18 @@ app.get('/', verifyAccessToken, (req, res)=>{
 })
  
 // routes
-const consumers = require('./routes/consumers')
-const employees = require('./routes/employees')
+const users = require('./routes/users')
 const sellers = require('./routes/sellers')
-const admin = require('./routes/admin')
+const consumers = require('./routes/consumers')
 const calves = require('./routes/calves')
 const cows = require('./routes/cows')
 const exportDetails = require('./routes/exportDetails')
 const importDetails = require('./routes/importDetails')
 
 
-app.use('/consumers',consumers)
-app.use('/employees',employees)
+app.use('/users', users)
 app.use('/sellers', sellers)
-app.use('/admin', admin)
+app.use('/consumers', consumers)
 app.use('/calves', calves)
 app.use('/cows', cows)
 app.use('/export-details',exportDetails)
@@ -68,8 +65,6 @@ app.use((err, req, res, next)=>{
         }
     })
 })
-
-
 
 
 app.listen(PORT, ()=> console.log("Server is listening on port: "+ PORT))

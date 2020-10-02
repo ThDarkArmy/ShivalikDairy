@@ -1,27 +1,14 @@
 const express = require('express')
 const router = express.Router()
-const multer = require('multer')
 const createError = require('http-errors')
 const { verifyAccessToken } = require('../helpers/check-auth')
-
-// stoarge
-const storage = multer.diskStorage({
-    destination: function(req, file, cb){
-        cb(null, 'files/cows/')
-    },
-    filename: function(req, file, cb){
-        cb(null, file.originalname)
-    }
-})
-
-const upload = multer({storage: storage})
-
 const Cow = require('../models/Cow')
+const {cowSchema} = require('../helpers/validationSchema')
 
 // get all cows
-router.get('/', async (req, res, next)=>{
+router.get('/all',verifyAccessToken, async (req, res, next)=>{
     try{
-        const cows = await Cow.find({})
+        const cows = await Cow.find({}).select("-__v")
         res.status(200).json({cows})
     }catch(error){
         next(error)
@@ -29,9 +16,9 @@ router.get('/', async (req, res, next)=>{
 })
 
 // get cow by id
-router.get('/:id',verifyAccessToken, async (req, res, next)=>{
+router.get('/byId/:id',verifyAccessToken, async (req, res, next)=>{
     try{
-        const cow = await Cow.findById(req.params.id)
+        const cow = await Cow.findById(req.params.id).select("-__v")
         res.status(200).json(cow)
     }catch(error){
         next(error)
@@ -39,23 +26,26 @@ router.get('/:id',verifyAccessToken, async (req, res, next)=>{
 })
 
 // add cow
-router.post('/add', verifyAccessToken, upload.single('profilePic'), async (req, res, next)=>{
+router.post('/add',verifyAccessToken, async (req, res, next)=>{
     
     try{
+        //console.log(req.payload.role)
         if(req.payload.role!=="ADMIN") throw createError.Unauthorized("You are not authorized to add cow.")
-        if(!req.file) throw createError.BadRequest("Profile pic required!")
-        const {name, age, pregnancy, isHealthy, isProductive, amountOfMilk} = req.body
-        const preg = JSON.parse(pregnancy)
+        const result = await cowSchema.validateAsync(req.body)
+        const {name, age, isPregnant,  pregnantFrom, isHealthy, isProductive, amountOfMilk} = result
+        const cow = await Cow.findOne({name})
+        if(cow) throw createError.Conflict("Cow name already exists.")
         const newCow = new Cow({
             name,
             age,
-            pregnancy: preg,
+            isPregnant,
+            pregnantFrom,
             isProductive,
             isHealthy,
             amountOfMilk
         })
         const savedCow = await newCow.save()
-        res.status(201).json(savedCow)
+        res.status(201).json({msg: "Cow added successfully."})
 
     }catch(error){
         next(error)
@@ -66,10 +56,11 @@ router.post('/add', verifyAccessToken, upload.single('profilePic'), async (req, 
 router.put('/:id', verifyAccessToken, async (req, res, next)=>{
     
     try{
-        if(req.payload.role!=="ADMIN") throw createError.Unauthorized("You are not authorized to update cow.")
-        const {name, age, pregnancy, isHealthy, isProductive, amountOfMilk} = req.body
-       // console.log(req.body)
         
+        if(req.payload.role!=="ADMIN") throw createError.Unauthorized("You are not authorized to update cow.")
+        const result = await cowSchema.validateAsync(req.body)
+        const {name, age, isPregnant,  pregnantFrom, isHealthy, isProductive, amountOfMilk} = result
+       // console.log(req.body)
        
         //const preg = JSON.parse(pregnancy)
         const cow = await Cow.findById(req.params.id)
@@ -78,7 +69,8 @@ router.put('/:id', verifyAccessToken, async (req, res, next)=>{
             _id: req.params.id,
             name,
             age,
-            pregnancy,
+            isPregnant,
+            pregnantFrom,
             isProductive,
             isHealthy,
             amountOfMilk

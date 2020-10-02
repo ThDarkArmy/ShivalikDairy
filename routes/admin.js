@@ -27,9 +27,9 @@ const upload = multer({storage: storage})
 // get all admin
 router.get('/', async (req, res)=>{
     try{
-        const admin = await Admin.find({}).select("-__v")
+        const admin = await Admin.findOne({}).select("-__v")
         //console.log("admin",admin)
-        res.status(200).json({admin: admin})
+        res.status(200).json(admin)
     }catch(err){
         res.status(500).json({msg: "Server Error", error: err})
     }

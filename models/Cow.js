@@ -7,32 +7,33 @@ const cowSchema = mongoose.Schema({
         trim: true, 
         unique: true
     },
-    profilePic: {
-        type: String,
-    },
     age: {
-        type: Number
+        type: Number,
+        required: true,
     },
     isProductive: {
         type: Boolean,
+        required: true,
         default: false
     },
 
     amountOfMilk: {
-        type: Number
+        type: Number,
+        required: true,
     }, 
-    pregnancy: {
-        isPregnant: {
-            type: Boolean,
-            default: false
-        },
-        pregnancyDuration: {
-            type: Number,
-            default: 0
-        }
+
+    isPregnant: {
+        type: Boolean,
+        required: true,
+        default: false
+    },
+    pregnantFrom: {
+        type: Date,
+        default: null
     },
     isHealthy: {
         type: Boolean,
+        required: true,
         default: true
     }
 })

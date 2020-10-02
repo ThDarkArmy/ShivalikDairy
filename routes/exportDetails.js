@@ -4,13 +4,13 @@ const createError = require('http-errors')
 const ExportDetails = require('../models/ExportDetails')
 const { verifyAccessToken } = require('../helpers/check-auth')
 const { exportDetailsSchema} = require('../helpers/validationSchema')
-const Consumer = require('../models/Consumer')
+const User = require('../models/User')
 
 
 // get detail of all exports
-router.get('/detail', async (req, res, next)=>{
+router.get('/detail', verifyAccessToken, async (req, res, next)=>{
     try{
-        const exportDetails = await ExportDetails.find({})
+        const exportDetails = await ExportDetails.find({}).populate("user", "-__v -password").select("-__v")
         res.status(200).json({exportDetails})
     }catch(error){
         next(error)
@@ -19,9 +19,9 @@ router.get('/detail', async (req, res, next)=>{
 
 
 // get total of all exports
-router.get('/total', async (req, res, next)=>{
+router.get('/total', verifyAccessToken, async (req, res, next)=>{
     try{
-        const exportDetails = await ExportDetails.find({})
+        const exportDetails = await ExportDetails.find({}).select("-__v")
         var totalMilkSold = 0
         var totalAmountPaid=0
         exportDetails.forEach(exportDetail=>{
@@ -36,9 +36,9 @@ router.get('/total', async (req, res, next)=>{
 
 
 // get export detail by id
-router.get('/:id', async (req, res, next)=>{
+router.get('/byId/:id', verifyAccessToken, async (req, res, next)=>{
     try{
-        const exportDetail = await ExportDetails.findById(req.params.id)
+        const exportDetail = await ExportDetails.findById(req.params.id).populate("user", "-__v -password").select("-__v")
         res.status(200).json(exportDetail)
 
     }catch(error){
@@ -51,7 +51,7 @@ router.get('/byDate/detail/:date', verifyAccessToken, async (req, res, next)=>{
     try{
         if(req.payload.role!=="ADMIN") throw createError.Unauthorized()
         const date = (new Date(req.params.date)).toLocaleDateString("en-US")
-        const exportDetails = await ExportDetails.find({date : date})
+        const exportDetails = await ExportDetails.find({date : date}).populate("user", "-__v -password").select("-__v")
         res.status(200).json({exportDetails})
 
     }catch(error){
@@ -80,13 +80,13 @@ router.get('/byDate/total/:date',verifyAccessToken, async (req, res, next)=>{
 })
 
 
-// get detail of all exports by consumer
+// get detail of all exports by user
 router.get('/byConsumer/detail/:consumerId', verifyAccessToken, async (req, res, next)=>{
     try{
         if(req.payload.role!=="ADMIN" && req.payload.role!=="CONSUMER") throw createError.Unauthorized("fuck off")
-        const consumer = await Consumer.findById(req.params.consumerId)
-        if(!consumer) throw createError.NotFound("Consumer with given id not found.")
-        const exportDetails = await ExportDetails.find({soldTo: req.params.consumerId})
+        const user = await User.findById(req.params.consumerId)
+        if(!user) throw createError.NotFound("User with given id not found.")
+        const exportDetails = await ExportDetails.find({user: req.params.consumerId}).populate("user", "-__v -password").select("-__v")
         res.status(200).json({exportDetails})
 
     }catch(error){
@@ -95,13 +95,13 @@ router.get('/byConsumer/detail/:consumerId', verifyAccessToken, async (req, res,
 })
 
 
-// get total exports by consumer
+// get total exports by user
 router.get('/byConsumer/total/:consumerId', verifyAccessToken, async (req, res, next)=>{
     try{
         if(req.payload.role!=="ADMIN" && req.payload.role!=="CONSUMER") throw createError.Unauthorized()
-        const consumer = await Consumer.findById(req.params.consumerId)
-        if(!consumer) throw createError.NotFound("Consumer with given id not found.")
-        const exportDetails = await ExportDetails.find({soldTo: req.params.consumerId})
+        const user = await User.findById(req.params.consumerId)
+        if(!user) throw createError.NotFound("User with given id not found.")
+        const exportDetails = await ExportDetails.find({user: req.params.consumerId})
         var totalMilkSold = 0
         var totalAmountPaid=0
         exportDetails.forEach(exportDetail=>{
@@ -109,21 +109,21 @@ router.get('/byConsumer/total/:consumerId', verifyAccessToken, async (req, res, 
             totalMilkSold = totalMilkSold + exportDetail.amountOfMilkSold
         })
         
-        res.status(200).json({consumer: consumer.name,totalMilkSold, totalAmountPaid})
+        res.status(200).json({user: user.name,totalMilkSold, totalAmountPaid})
 
     }catch(error){
         next(error)
     }
 })
 
-// get detail of all exports by consumer and date
+// get detail of all exports by user and date
 router.get('/byConsumerAndDate/detail/:consumerId/:date', verifyAccessToken, async (req, res, next)=>{
     try{
         if(req.payload.role!=="ADMIN" && req.payload.role!=="CONSUMER") throw createError.Unauthorized()
-        const consumer = await Consumer.findById(req.params.consumerId)
-        if(!consumer) throw createError.NotFound("Consumer with given id not found.")
+        const user = await User.findById(req.params.consumerId)
+        if(!user) throw createError.NotFound("User with given id not found.")
         const date = (new Date(req.params.date)).toLocaleDateString("en-US")
-        const exportDetails = await ExportDetails.find({soldTo: req.params.consumerId, date: date})
+        const exportDetails = await ExportDetails.find({user: req.params.consumerId, date: date}).populate("user", "-__v -password").select("-__v")
         
         res.status(200).json({exportDetails})
 
@@ -132,17 +132,17 @@ router.get('/byConsumerAndDate/detail/:consumerId/:date', verifyAccessToken, asy
     }
 })
 
-// get detail of all exports by consumer and month
+// get detail of all exports by user and month
 router.get('/byConsumerAndMonth/detail/:consumerId/:my', verifyAccessToken, async (req, res, next)=>{
     try{
         if(req.payload.role!=="ADMIN" && req.payload.role!=="CONSUMER") throw createError.Unauthorized()
-        const consumer = await Consumer.findById(req.params.consumerId)
-        if(!consumer) throw createError.NotFound("Consumer with given id not found.")
+        const user = await User.findById(req.params.consumerId)
+        if(!user) throw createError.NotFound("User with given id not found.")
         const ar = req.params.my.split('-')
         const month = parseInt(ar[0])
         const year=parseInt(ar[1])
         var exportDetails=[]
-        const expDetails = await ExportDetails.find({soldTo: req.params.consumerId})
+        const expDetails = await ExportDetails.find({user: req.params.consumerId}).populate("user", "-__v -password").select("-__v")
         expDetails.forEach(exportDetail=>{
             if((new Date(exportDetail.date)).getMonth()===month-1 && (new Date(exportDetail.date)).getFullYear()===year){
                 exportDetails.push(exportDetail)
@@ -156,16 +156,16 @@ router.get('/byConsumerAndMonth/detail/:consumerId/:my', verifyAccessToken, asyn
 })
 
 
-// get total of all exports by consumer and month
+// get total of all exports by user and month
 router.get('/byConsumerAndMonth/total/:consumerId/:my', verifyAccessToken, async (req, res, next)=>{
     try{
         if(req.payload.role!=="ADMIN" && req.payload.role!=="CONSUMER") throw createError.Unauthorized()
-        const consumer = await Consumer.findById(req.params.consumerId)
-        if(!consumer) throw createError.NotFound("Consumer with given id not found.")
+        const user = await User.findById(req.params.consumerId)
+        if(!user) throw createError.NotFound("User with given id not found.")
         const ar = req.params.my.split('-')
         const month = parseInt(ar[0])
         const year=parseInt(ar[1])
-        const expDetails = await ExportDetails.find({soldTo: req.params.consumerId})
+        const expDetails = await ExportDetails.find({user: req.params.consumerId})
         var totalMilkSold = 0
         var totalAmountPaid=0
         expDetails.forEach(exportDetail=>{
@@ -174,7 +174,7 @@ router.get('/byConsumerAndMonth/total/:consumerId/:my', verifyAccessToken, async
                 totalMilkSold = totalMilkSold + exportDetail.amountOfMilkSold
             }
         })
-        res.status(200).json({consumer: consumer.name, monthyear: month+"-"+year, totalMilkSold, totalAmountPaid})
+        res.status(200).json({user: user.name, monthyear: month+"-"+year, totalMilkSold, totalAmountPaid})
 
     }catch(error){
         next(error)
@@ -182,15 +182,15 @@ router.get('/byConsumerAndMonth/total/:consumerId/:my', verifyAccessToken, async
 })
 
 
-// get detail of all exports by consumer and year
+// get detail of all exports by user and year
 router.get('/byConsumerAndYear/detail/:consumerId/:yyyy', verifyAccessToken, async (req, res, next)=>{
     try{
         if(req.payload.role!=="ADMIN" && req.payload.role!=="CONSUMER") throw createError.Unauthorized()
-        const consumer = await Consumer.findById(req.params.consumerId)
-        if(!consumer) throw createError.NotFound("Consumer with given id not found.")
+        const user = await User.findById(req.params.consumerId)
+        if(!user) throw createError.NotFound("User with given id not found.")
         const year=parseInt(req.params.yyyy)
         var exportDetails=[]
-        const expDetails = await ExportDetails.find({soldTo: req.params.consumerId})
+        const expDetails = await ExportDetails.find({user: req.params.consumerId}).populate("user", "-__v -password").select("-__v")
         expDetails.forEach(exportDetail=>{
             if((new Date(exportDetail.date)).getFullYear()===year){
                 exportDetails.push(exportDetail)
@@ -204,14 +204,14 @@ router.get('/byConsumerAndYear/detail/:consumerId/:yyyy', verifyAccessToken, asy
 })
 
 
-// get total of all exports by consumer and year
+// get total of all exports by user and year
 router.get('/byConsumerAndYear/total/:consumerId/:yyyy', verifyAccessToken, async (req, res, next)=>{
     try{
         if(req.payload.role!=="ADMIN" && req.payload.role!=="CONSUMER") throw createError.Unauthorized()
-        const consumer = await Consumer.findById(req.params.consumerId)
-        if(!consumer) throw createError.NotFound("Consumer with given id not found.")
+        const user = await User.findById(req.params.consumerId)
+        if(!user) throw createError.NotFound("User with given id not found.")
         const year=parseInt(req.params.yyyy)
-        const expDetails = await ExportDetails.find({soldTo: req.params.consumerId})
+        const expDetails = await ExportDetails.find({user: req.params.consumerId})
         var totalMilkSold = 0
         var totalAmountPaid=0
         expDetails.forEach(exportDetail=>{
@@ -220,7 +220,7 @@ router.get('/byConsumerAndYear/total/:consumerId/:yyyy', verifyAccessToken, asyn
                 totalMilkSold = totalMilkSold + exportDetail.amountOfMilkSold
             }
         })
-        res.status(200).json({consumer: consumer.name, year: year, totalMilkSold, totalAmountPaid})
+        res.status(200).json({user: user.name, year: year, totalMilkSold, totalAmountPaid})
 
     }catch(error){
         next(error)
@@ -236,7 +236,7 @@ router.get('/byMonthYear/detail/:my',verifyAccessToken, async (req, res, next)=>
         const month = parseInt(ar[0])
         const year=parseInt(ar[1])
         var exportDetails=[]
-        const expDetails = await ExportDetails.find({})
+        const expDetails = await ExportDetails.find({}).populate("user", "-__v -password").select("-__v")
         expDetails.forEach(exportDetail=>{
             //console.log((new Date(exportDetail.date)).getMonth(), (new Date(exportDetail.date)).getFullYear())
             if((new Date(exportDetail.date)).getMonth()===month-1 && (new Date(exportDetail.date)).getFullYear()===year){
@@ -284,7 +284,7 @@ router.get('/byYear/detail/:yyyy',verifyAccessToken, async (req, res, next)=>{
         if(req.payload.role!=="ADMIN") throw createError.Unauthorized("You are unauthorized.")
         const year=parseInt(req.params.yyyy)
         var exportDetails=[]
-        const expDetails = await ExportDetails.find({})
+        const expDetails = await ExportDetails.find({}).populate("user", "-__v -password").select("-__v")
         expDetails.forEach(exportDetail=>{
             //console.log((new Date(exportDetail.date)).getMonth(), (new Date(exportDetail.date)).getFullYear())
             if((new Date(exportDetail.date)).getFullYear()===year){
@@ -328,11 +328,12 @@ router.post('/add',verifyAccessToken, async (req, res, next)=>{
     try{
         if(req.payload.role!=="ADMIN") throw createError.Unauthorized("You are unauthorized.")
         const result = await exportDetailsSchema.validateAsync(req.body)
-        const { amountOfMilkSold, amountPaid, soldTo} = result
+        const { amountOfMilkSold, amountPaid,date, user} = result
         const newExport = new ExportDetails({
             amountOfMilkSold,
             amountPaid, 
-            soldTo
+            date,
+            user
         })
 
         const response = await newExport.save()
@@ -352,12 +353,12 @@ router.put('/:id', verifyAccessToken, async (req, res, next)=>{
         const result = await exportDetailsSchema.validateAsync(req.body)
         const exportDetail = await ExportDetails.findById(req.params.id)
         if(!exportDetail) throw createError.NotFound("Export detail not found")
-        const { amountOfMilkSold, amountPaid, date, soldTo} = result
+        const { amountOfMilkSold, amountPaid, date, user} = result
         const newExport = new ExportDetails({
             amountOfMilkSold,
             amountPaid, 
             date, 
-            soldTo
+            user
         })
 
         const response = await ExportDetails.findByIdAndUpdate(req.params.id, {$set: newExport}, {new: true})

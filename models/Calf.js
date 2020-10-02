@@ -7,21 +7,20 @@ const calfSchema = mongoose.Schema({
         trim: true,
         unique: true
     },
-    profilePic: {
-        type: String,
-    },
     dob: {
-        type: String
+        type: Date,
+        required: true
     },
     isHealthy: {
         type: Boolean,
         default: true
     },
     gender: {
-        type: String
+        type: String,
+        required: true
     },
 
-    childOf: {
+    cow: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "Cow"
     }

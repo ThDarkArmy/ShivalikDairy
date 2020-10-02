@@ -4,10 +4,10 @@ const createError = require('http-errors')
 const ImportDetails = require('../models/ImportDetails')
 const { verifyAccessToken } = require('../helpers/check-auth')
 const { importDetailsSchema} = require('../helpers/validationSchema')
-const Seller = require('../models/Seller')
+const User = require('../models/User')
 
 
-// get detail of all exports
+// get detail of all imports
 router.get('/detail', async (req, res, next)=>{
     try{
         const importDetails = await ImportDetails.find({})
@@ -18,7 +18,7 @@ router.get('/detail', async (req, res, next)=>{
 })
 
 
-// get total of all exports
+// get total of all imports
 router.get('/total', async (req, res, next)=>{
     try{
         const importDetails = await ImportDetails.find({})
@@ -35,7 +35,7 @@ router.get('/total', async (req, res, next)=>{
 })
 
 
-// get export detail by id
+// get import detail by id
 router.get('/:id', async (req, res, next)=>{
     try{
         const importDetail = await ImportDetails.findById(req.params.id)
@@ -46,7 +46,7 @@ router.get('/:id', async (req, res, next)=>{
     }
 })
 
-// get export details by date
+// get import details by date
 router.get('/byDate/detail/:date', verifyAccessToken, async (req, res, next)=>{
     try{
         if(req.payload.role!=="ADMIN") throw createError.Unauthorized()
@@ -59,7 +59,7 @@ router.get('/byDate/detail/:date', verifyAccessToken, async (req, res, next)=>{
     }
 })
 
-// get total of export by date
+// get total of import by date
 router.get('/byDate/total/:date',verifyAccessToken, async (req, res, next)=>{
     try{
         if(req.payload.role!=="ADMIN") throw createError.Unauthorized()
@@ -80,12 +80,12 @@ router.get('/byDate/total/:date',verifyAccessToken, async (req, res, next)=>{
 })
 
 
-// get detail of all exports by consumer
+// get detail of all imports by consumer
 router.get('/byConsumer/detail/:consumerId', verifyAccessToken, async (req, res, next)=>{
     try{
         if(req.payload.role!=="ADMIN" && req.payload.role!=="SELLER") throw createError.Unauthorized("fuck off")
-        const consumer = await Seller.findById(req.params.consumerId)
-        if(!consumer) throw createError.NotFound("Seller with given id not found.")
+        const consumer = await User.findById(req.params.consumerId)
+        if(!consumer) throw createError.NotFound("User with given id not found.")
         const importDetails = await ImportDetails.find({boughtFrom: req.params.consumerId})
         res.status(200).json({importDetails})
 
@@ -95,12 +95,12 @@ router.get('/byConsumer/detail/:consumerId', verifyAccessToken, async (req, res,
 })
 
 
-// get total exports by consumer
+// get total imports by consumer
 router.get('/byConsumer/total/:consumerId', verifyAccessToken, async (req, res, next)=>{
     try{
         if(req.payload.role!=="ADMIN" && req.payload.role!=="SELLER") throw createError.Unauthorized()
-        const consumer = await Seller.findById(req.params.consumerId)
-        if(!consumer) throw createError.NotFound("Seller with given id not found.")
+        const consumer = await User.findById(req.params.consumerId)
+        if(!consumer) throw createError.NotFound("User with given id not found.")
         const importDetails = await ImportDetails.find({boughtFrom: req.params.consumerId})
         var totalMilkBought = 0
         var totalAmountPaid=0
@@ -116,12 +116,12 @@ router.get('/byConsumer/total/:consumerId', verifyAccessToken, async (req, res, 
     }
 })
 
-// get detail of all exports by consumer and date
+// get detail of all imports by consumer and date
 router.get('/byConsumerAndDate/:consumerId/:date', verifyAccessToken, async (req, res, next)=>{
     try{
         if(req.payload.role!=="ADMIN" && req.payload.role!=="SELLER") throw createError.Unauthorized()
-        const consumer = await Seller.findById(req.params.consumerId)
-        if(!consumer) throw createError.NotFound("Seller with given id not found.")
+        const consumer = await User.findById(req.params.consumerId)
+        if(!consumer) throw createError.NotFound("User with given id not found.")
         const date = (new Date(req.params.date)).toLocaleDateString("en-US")
         const importDetails = await ImportDetails.find({boughtFrom: req.params.consumerId, date: date})
         
@@ -132,12 +132,12 @@ router.get('/byConsumerAndDate/:consumerId/:date', verifyAccessToken, async (req
     }
 })
 
-// get detail of all exports by consumer and month
+// get detail of all imports by consumer and month
 router.get('/byConsumerAndMonth/detail/:consumerId/:my', verifyAccessToken, async (req, res, next)=>{
     try{
         if(req.payload.role!=="ADMIN" && req.payload.role!=="SELLER") throw createError.Unauthorized()
-        const consumer = await Seller.findById(req.params.consumerId)
-        if(!consumer) throw createError.NotFound("Seller with given id not found.")
+        const consumer = await User.findById(req.params.consumerId)
+        if(!consumer) throw createError.NotFound("User with given id not found.")
         const ar = req.params.my.split('-')
         const month = parseInt(ar[0])
         const year=parseInt(ar[1])
@@ -156,12 +156,12 @@ router.get('/byConsumerAndMonth/detail/:consumerId/:my', verifyAccessToken, asyn
 })
 
 
-// get total of all exports by consumer and month
+// get total of all imports by consumer and month
 router.get('/byConsumerAndMonth/total/:consumerId/:my', verifyAccessToken, async (req, res, next)=>{
     try{
         if(req.payload.role!=="ADMIN" && req.payload.role!=="SELLER") throw createError.Unauthorized()
-        const consumer = await Seller.findById(req.params.consumerId)
-        if(!consumer) throw createError.NotFound("Seller with given id not found.")
+        const consumer = await User.findById(req.params.consumerId)
+        if(!consumer) throw createError.NotFound("User with given id not found.")
         const ar = req.params.my.split('-')
         const month = parseInt(ar[0])
         const year=parseInt(ar[1])
@@ -182,12 +182,12 @@ router.get('/byConsumerAndMonth/total/:consumerId/:my', verifyAccessToken, async
 })
 
 
-// get detail of all exports by consumer and year
+// get detail of all imports by consumer and year
 router.get('/byConsumerAndYear/detail/:consumerId/:yyyy', verifyAccessToken, async (req, res, next)=>{
     try{
         if(req.payload.role!=="ADMIN" && req.payload.role!=="SELLER") throw createError.Unauthorized()
-        const consumer = await Seller.findById(req.params.consumerId)
-        if(!consumer) throw createError.NotFound("Seller with given id not found.")
+        const consumer = await User.findById(req.params.consumerId)
+        if(!consumer) throw createError.NotFound("User with given id not found.")
         const year=parseInt(req.params.yyyy)
         var importDetails=[]
         const expDetails = await ImportDetails.find({boughtFrom: req.params.consumerId})
@@ -204,12 +204,12 @@ router.get('/byConsumerAndYear/detail/:consumerId/:yyyy', verifyAccessToken, asy
 })
 
 
-// get total of all exports by consumer and year
+// get total of all imports by consumer and year
 router.get('/byConsumerAndYear/total/:consumerId/:yyyy', verifyAccessToken, async (req, res, next)=>{
     try{
         if(req.payload.role!=="ADMIN" && req.payload.role!=="SELLER") throw createError.Unauthorized()
-        const consumer = await Seller.findById(req.params.consumerId)
-        if(!consumer) throw createError.NotFound("Seller with given id not found.")
+        const consumer = await User.findById(req.params.consumerId)
+        if(!consumer) throw createError.NotFound("User with given id not found.")
         const year=parseInt(req.params.yyyy)
         const expDetails = await ImportDetails.find({boughtFrom: req.params.consumerId})
         var totalMilkBought = 0
@@ -228,7 +228,7 @@ router.get('/byConsumerAndYear/total/:consumerId/:yyyy', verifyAccessToken, asyn
 })
 
 
-//get detail of all exports by month
+//get detail of all imports by month
 router.get('/byMonthYear/detail/:my',verifyAccessToken, async (req, res, next)=>{
     try{
         if(req.payload.role!=="ADMIN") throw createError.Unauthorized("You are unauthorized.")
@@ -252,7 +252,7 @@ router.get('/byMonthYear/detail/:my',verifyAccessToken, async (req, res, next)=>
 })
 
 
-//get total of all exports by month
+//get total of all imports by month
 router.get('/byMonthYear/total/:my',verifyAccessToken, async (req, res, next)=>{
     try{
         if(req.payload.role!=="ADMIN") throw createError.Unauthorized("You are unauthorized.")
@@ -278,7 +278,7 @@ router.get('/byMonthYear/total/:my',verifyAccessToken, async (req, res, next)=>{
 
 
 
-// get detils of all exports by year
+// get detils of all imports by year
 router.get('/byYear/detail/:yyyy',verifyAccessToken, async (req, res, next)=>{
     try{
         if(req.payload.role!=="ADMIN") throw createError.Unauthorized("You are unauthorized.")
@@ -299,7 +299,7 @@ router.get('/byYear/detail/:yyyy',verifyAccessToken, async (req, res, next)=>{
     }
 })
 
-// get total of all exports by year
+// get total of all imports by year
 router.get('/byYear/total/:yyyy',verifyAccessToken, async (req, res, next)=>{
     try{
         if(req.payload.role!=="ADMIN") throw createError.Unauthorized("You are unauthorized.")
@@ -323,7 +323,7 @@ router.get('/byYear/total/:yyyy',verifyAccessToken, async (req, res, next)=>{
 })
 
 
-// add export detail
+// add import detail
 router.post('/add',verifyAccessToken, async (req, res, next)=>{
     try{
         
@@ -346,7 +346,7 @@ router.post('/add',verifyAccessToken, async (req, res, next)=>{
 })
 
 
-// update export detail
+// update import detail
 router.put('/:id', verifyAccessToken, async (req, res, next)=>{
     try{
         if(req.payload.role!=="ADMIN") throw createError.Unauthorized("You are unauthorized.")
@@ -371,7 +371,7 @@ router.put('/:id', verifyAccessToken, async (req, res, next)=>{
     }
 })
 
-// delete export detail
+// delete import detail
 router.delete('/:id',verifyAccessToken, async (req, res, next)=>{
     try{
         if(req.payload.role!=="ADMIN") throw createError.Unauthorized("You are unauthorized.")
