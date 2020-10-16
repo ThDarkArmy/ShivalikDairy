@@ -13,7 +13,7 @@ const importDetalsSchema = mongoose.Schema({
 
     date: {
         type: String,
-        default: (new Date()).toLocaleDateString("en-US")
+        required: true
     },
 
     user: {

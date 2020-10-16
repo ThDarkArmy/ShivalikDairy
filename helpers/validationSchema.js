@@ -14,25 +14,36 @@ const loginSchema = Joi.object({
     password: Joi.string().min(6).required()
 })
 
+const productSchema = Joi.object({
+    name: Joi.string().min(3).required(),
+    price: Joi.number().min(1).required(),
+})
+
+const noticeSchema = Joi.object({
+    title: Joi.string().min(3).required(),
+    description: Joi.string().min(20).required(),
+    
+})
+
 const importDetailsSchema = Joi.object({
     amountOfMilkBought: Joi.number().min(1).required(),
     amountPaid: Joi.number().min(1),
-    user: Joi.objectId(),
+    userId: Joi.objectId(),
     date: Joi.date().allow(null)
 })
 
 const exportDetailsSchema = Joi.object({
     amountOfMilkSold: Joi.number().min(1).required(),
     amountPaid: Joi.number().min(1),
-    user: Joi.objectId(),
+    userId: Joi.objectId(),
     date: Joi.date().allow(null)
 })
 
 const salarySchema = Joi.object({
     amount: Joi.number().min(1000).required(),
     isPaid: Joi.boolean().required(),
-    ofMonthYear: Joi.string().min(5).required(),
-    paidTo: Joi.objectId()
+    ofMonthAndYear: Joi.string().min(5).required(),
+    userId: Joi.objectId()
 })
 
 const cowSchema = Joi.object({
@@ -53,6 +64,12 @@ const calfSchema = Joi.object({
     gender: Joi.string().min(3).required()
 })
 
+const expenseSchema = Joi.object({
+    medicinalItems: Joi.number().min(0).required(),
+    foodItems: Joi.number().min(0).required(),
+    others: Joi.number().min(0).required(),
+})
+
 
 module.exports = {
     authSchema,
@@ -61,6 +78,9 @@ module.exports = {
     importDetailsSchema,
     salarySchema,
     cowSchema,
-    calfSchema
+    calfSchema,
+    productSchema,
+    expenseSchema,
+    noticeSchema
 }
 

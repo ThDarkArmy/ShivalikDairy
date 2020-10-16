@@ -18,7 +18,7 @@ const salarySchema = mongoose.Schema({
         default: (new Date()).toLocaleDateString("en-US")
     },
 
-    paidTo: {
+    user: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "Employee"
     }

@@ -231,6 +231,7 @@ router.get('/byConsumerAndYear/total/:consumerId/:yyyy', verifyAccessToken, asyn
 //get detail of all exports by month
 router.get('/byMonthYear/detail/:my',verifyAccessToken, async (req, res, next)=>{
     try{
+        console.log(req.payload.role)
         if(req.payload.role!=="ADMIN") throw createError.Unauthorized("You are unauthorized.")
         const ar = req.params.my.split('-')
         const month = parseInt(ar[0])
@@ -328,12 +329,12 @@ router.post('/add',verifyAccessToken, async (req, res, next)=>{
     try{
         if(req.payload.role!=="ADMIN") throw createError.Unauthorized("You are unauthorized.")
         const result = await exportDetailsSchema.validateAsync(req.body)
-        const { amountOfMilkSold, amountPaid,date, user} = result
+        const { amountOfMilkSold, amountPaid,date, userId} = result
         const newExport = new ExportDetails({
             amountOfMilkSold,
             amountPaid, 
             date,
-            user
+            user: userId
         })
 
         const response = await newExport.save()
@@ -353,12 +354,13 @@ router.put('/:id', verifyAccessToken, async (req, res, next)=>{
         const result = await exportDetailsSchema.validateAsync(req.body)
         const exportDetail = await ExportDetails.findById(req.params.id)
         if(!exportDetail) throw createError.NotFound("Export detail not found")
-        const { amountOfMilkSold, amountPaid, date, user} = result
+        const { amountOfMilkSold, amountPaid, date, userId} = result
         const newExport = new ExportDetails({
+            _id: req.params.id,
             amountOfMilkSold,
             amountPaid, 
             date, 
-            user
+            user: userId
         })
 
         const response = await ExportDetails.findByIdAndUpdate(req.params.id, {$set: newExport}, {new: true})

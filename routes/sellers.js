@@ -9,7 +9,7 @@ const ImportDetails = require("../models/ImportDetails")
 // get all seller
 router.get('/all',verifyAccessToken, async (req, res)=>{
     try{
-        const users = await User.find({role:"CONSUMER"}).select("-__v")
+        const users = await User.find({role:"SELLER"}).select("-__v")
         //console.log("consumers",consumers)
         res.status(200).json({users})
     }catch(err){

@@ -26,7 +26,7 @@ app.use(morgan('dev'))
 
 app.get('/', verifyAccessToken, (req, res)=>{
     try{
-        console.log(req.payload)
+        //console.log(req.payload)
         res.status(201).json("This is home page");
     }catch(error){
         next(error)
@@ -42,6 +42,11 @@ const calves = require('./routes/calves')
 const cows = require('./routes/cows')
 const exportDetails = require('./routes/exportDetails')
 const importDetails = require('./routes/importDetails')
+const products = require('./routes/products')
+const salaries = require('./routes/salary')
+const expenses = require('./routes/expenses')
+const notices = require('./routes/notices')
+const profits = require('./routes/profits')
 
 
 app.use('/users', users)
@@ -51,6 +56,11 @@ app.use('/calves', calves)
 app.use('/cows', cows)
 app.use('/export-details',exportDetails)
 app.use('/import-details',importDetails)
+app.use('/products', products)
+app.use('/salaries', salaries)
+app.use('/expenses', expenses)
+app.use('/notices', notices)
+app.use('/profits', profits)
 
 app.use(async(req, res, next)=>{
     next(createError.NotFound())
