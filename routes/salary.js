@@ -42,13 +42,16 @@ router.get('/employees',verifyAccessToken, async (req, res, next)=>{
 // get salary by employee
 router.get('/employee-details/:id',verifyAccessToken, async (req, res, next)=>{
     try{
-        const month = (new Date()).getMonth()
+        var month = (new Date()).getMonth()
+        if(month<10){
+            month = "0"+month
+        }
         const year = (new Date()).getFullYear()
         const salary = await Salary.findOne({user: req.params.id, ofMonthAndYear: month+"-"+year})
         const user = await User.findById(req.params.id).select("-__v -password")
-        var salaryStatus = 'unpaid';
+        var salaryStatus = 'Unpaid';
         if(salary){
-            salaryStatus = 'paid'
+            salaryStatus = 'Paid'
         }
         const {name, email, profilePic, mobile, dateJoined, _id} = user
         const employee = {
@@ -76,17 +79,19 @@ router.post('/add', verifyAccessToken, async (req, res, next)=>{
         if(req.payload.role!=="ADMIN") throw createError.Unauthorized("You are not authorized to pay salary.")
         
         const result = await salarySchema.validateAsync(req.body)
-        const {amount, isPaid, ofMonthAndYear, userId} = result
+        const {amount,  ofMonthAndYear, userId} = result
         const salary = await Salary.findOne({user: userId, ofMonthAndYear: ofMonthAndYear})
         console.log(salary)
         if(salary!==null) throw createError.Conflict("Salary is already paid for this month.")
         
         const newSalary = new Salary({
             amount,
-            isPaid,
+            isPaid: true,
             ofMonthAndYear,
             user: userId
         })
+
+        //const user = await User.findById(userId)
 
         const savedSalary = await newSalary.save()
         res.status(201).json({msg: "Salary paid successfully."})

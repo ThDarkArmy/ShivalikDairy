@@ -59,12 +59,12 @@ router.get('/year', (req, res, next)=>{
 // add salary
 router.post('/add', verifyAccessToken, (req, res, next)=>{
     try{
-    if(req.payload.role!=="ADMIN") throw createError.Unauthorized()
+    
     const result = salarySchema.validateAsync(req.body)
-    const {amount, isPaid, ofMonthAndYear, paidTo} = result
+    const {amount, ofMonthAndYear, paidTo} = result
     const newSalary = new Salary({
         amount,
-        isPaid,
+        isPaid: true,
         ofMonthAndYear,
         paidTo
     })

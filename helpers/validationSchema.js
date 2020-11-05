@@ -41,9 +41,8 @@ const exportDetailsSchema = Joi.object({
 
 const salarySchema = Joi.object({
     amount: Joi.number().min(1000).required(),
-    isPaid: Joi.boolean().required(),
     ofMonthAndYear: Joi.string().min(5).required(),
-    userId: Joi.objectId()
+    user: Joi.objectId()
 })
 
 const cowSchema = Joi.object({

@@ -1,3 +1,4 @@
+const { date } = require('@hapi/joi')
 const mongoose = require('mongoose')
 
 const expenseSchema = mongoose.Schema({
@@ -21,7 +22,7 @@ const expenseSchema = mongoose.Schema({
     
     date: {
         type: Date,
-        default:(new Date()).getMonth()+"/"+(new Date()).getDate()+"/"+(new Date()).getFullYear()
+        default: new Date()
     },
 })
 

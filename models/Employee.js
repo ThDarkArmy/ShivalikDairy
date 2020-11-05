@@ -34,8 +34,8 @@ const employeeSchema = mongoose.Schema({
         required: true,
     },
     dateJoined: {
-        type: String,
-        default: Date.now().toString()
+        type: Date,
+        default: new Date()
     },
     fixedSalary: {
         type: Number,

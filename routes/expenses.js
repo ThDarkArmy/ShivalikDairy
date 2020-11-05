@@ -29,18 +29,20 @@ router.get('/byId/:id',verifyAccessToken, async (req, res, next)=>{
 
 
 // get all expense by month and year
-router.get('/month-year/:my',verifyAccessToken, async (req, res, next)=>{
+router.get('/byMonthYear/:my',verifyAccessToken, async (req, res, next)=>{
     try{
         const expenses = await Expense.find({}).select("-__v")
+        
         const my = (req.params.my).split('-')
     
         var expByMonth = []
         expenses.forEach(expense=>{
-            if(expense.date.getMonth()===my[0] && expense.date.getFullYear()===my[1]){
+            //console.log(new Date(expense.date).getMonth()+"-"+expense.date.getFullYear())
+            if(new Date(expense.date).getMonth()===parseInt(my[0])-1 && new Date(expense.date).getFullYear()===parseInt(my[1])){
+                
                 expByMonth.push(expense)
             }
         })
-        
         res.status(200).json({expenses: expByMonth})
     }catch(error){
         next(error)
@@ -79,6 +81,7 @@ router.put('/:id', verifyAccessToken, async (req, res, next)=>{
         const {foodItems, medicinalItems, others} = result
         
         const newExpense = new Expense({
+            _id: expense._id,
             foodItems, medicinalItems, others
         })
         const response = await Expense.findByIdAndUpdate(req.params.id, {$set: newExpense}, {new: true})

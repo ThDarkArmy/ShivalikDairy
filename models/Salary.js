@@ -15,7 +15,7 @@ const salarySchema = mongoose.Schema({
     },
     datePaid: {
         type: String,
-        default: (new Date()).toLocaleDateString("en-US")
+        default: new Date()
     },
 
     user: {

@@ -26,8 +26,8 @@ const sellerSchema = mongoose.Schema({
         unique: true
     },
     dateJoined: {
-        type: String,
-        default: (new Date()).toLocaleDateString("en-US")
+        type: Date,
+        default: new Date()
     },
 
     totalAmountOfMilkSold: {

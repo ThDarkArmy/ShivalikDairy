@@ -14,7 +14,7 @@ const noticeSchema = mongoose.Schema({
     },
     date: {
         type: Date,
-        default: (new Date()).toDateString()
+        default: new Date()
     }
     
 })
